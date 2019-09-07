@@ -15,20 +15,19 @@ pragma solidity ^0.5.11;
   3. When user is done taking pics, they log out and get returned
     any balance they didn't use to pay for posting pics.
 
-  4. If the user neglects to logout, after 21 blocks (~5 min) anyone
-    else can log in. The neglected balance _gets returned to its
-    rightful owner_.
+  4. If the user neglects to logout, after 43 blocks (~10 min) anyone
+    else can log in. The neglected balance stays in the camera and
+    future users can take free pictures with it
  */
 
 contract EthCam {
-    // 5 min timeout @ 14 sec per block
-    uint LOGIN_TIMEOUT_IN_BLOCKS = 21;
+    // 10 min timeout @ 14 sec per block
+    uint LOGIN_TIMEOUT_IN_BLOCKS = 43;
 
     address payable public CAMERA;
 
     address payable public loggedInUser;
-    uint public loggedInBlock;
-    uint public nonce;
+    uint public lastActionBlock;
     bytes32[] public pics;
 
     constructor(address payable camera) public {
@@ -36,24 +35,26 @@ contract EthCam {
     }
 
     modifier canLogin() {
-      if (loggedInUser != address(0)) {
-        require(
-          loggedInUser != address(msg.sender),
-          "You are already logged in."
-        );
-
-        require(
-          block.number > loggedInBlock + LOGIN_TIMEOUT_IN_BLOCKS,
-          "Someone else is currently logged in. Please wait until the previous timeout expires."
-        );
-
-        sendBalanceTo(loggedInUser);
+      // If no one is logged in, let them log in
+      if (loggedInUser == address(0)) {
+        _;
       }
-      _;
+
+      // Otherwise check the user trying to log in isn't already logged in
+      require(
+        loggedInUser != address(msg.sender),
+        "You are already logged in."
+      );
+
+      // And only proceed if the previous user has timed out
+      require(
+        block.number > lastActionBlock + LOGIN_TIMEOUT_IN_BLOCKS,
+        "Someone else is currently logged in. Please wait until the previous timeout expires."
+      );
     }
 
     modifier canLogout() {
-      require(msg.sender == loggedInUser, "You are not logged in.");
+      require(loggedInUser != address(0), "No one is logged in");
       _;
     }
 
@@ -72,31 +73,33 @@ contract EthCam {
       canLogin
     {
       loggedInUser = msg.sender;
-      loggedInBlock = block.number;
+      lastActionBlock = block.number;
       // Load camera up with credits
       // Remainder will be returned upon logout
       CAMERA.transfer(msg.value);
     }
 
-    function logout() public canLogout {
+    function logout() public canLogout onlyCamera payable {
+      address payable userBeingLoggedOut = loggedInUser;
+
       loggedInUser = address(0);
-      loggedInBlock = uint(0);
-      nonce = uint(0);
-      sendBalanceTo(msg.sender);
+      lastActionBlock = uint(0);
+
+      // Camera sends back its balance when it logs out the user
+      userBeingLoggedOut.transfer(msg.value);
     }
 
     function postPic(bytes32 hash) public onlyCamera {
       pics.push(hash);
-    }
 
-    function sendBalanceTo(address payable user) internal {
-      // this is broken now that the camera receives the funds directly
-      // look into figuring out how to keep the balance inside the contract
-      // and not inside the camera, and let the contract pay its own gas
-      user.transfer(address(this).balance);
+      // Reset timeout every time pic is posted so user times out
+      // 10 minutes after their last pic, not 10 minutes after
+      // their first pic
+      lastActionBlock = block.number;
     }
 
     function topUpCamera() public payable {
+      // Anyone can put money on the camera, allowing it to take pics
       CAMERA.transfer(msg.value);
     }
 }
