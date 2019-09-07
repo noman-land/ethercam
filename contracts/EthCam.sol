@@ -1,6 +1,9 @@
 pragma solidity ^0.5.11;
 
 contract EthCam {
+    // 5 min timeout @ 14 sec per block
+    uint loginTimeoutInBlocks = 21;
+
     address public CAMERA;
 
     address public loggedInUser;
@@ -11,15 +14,6 @@ contract EthCam {
     constructor(address camera) {
       CAMERA = camera;
     }
-
-    function registerCamera() {
-      // camera registers itself??
-
-      // only cameras can register other cameras???
-    }
-
-    // 5 min timeout @ 14 sec per block
-    uint loginTimeoutInBlocks = 21;
 
     modifier canLogin() {
       if (loggedInUser != address(0)) {
@@ -39,12 +33,17 @@ contract EthCam {
     }
 
     modifier canLogout() {
-      require(msg.sender == loggedInUser, "You are not logged in");
+      require(msg.sender == loggedInUser, "You are not logged in.");
       _;
     }
 
-    function sendBalanceTo(address user) internal {
-      user.transfer(address(this).balance);
+    modifier onlyCamera() {
+      require(msg.sender == CAMERA, "Sorry, only cameras can do this.");
+      _;
+    }
+
+    function getPicsCount() public view returns (uint) {
+      return pics.length;
     }
 
     function login()
@@ -54,12 +53,9 @@ contract EthCam {
     {
       loggedInUser = msg.sender;
       loggedInBlock = block.number;
+      // Load camera up with credits
+      // Remainder will be returned upon logout
       CAMERA.transfer(msg.value);
-    }
-
-    // TODO
-    function topUp(address cameraId) {
-      // Add money to a camera!!!
     }
 
     function logout() public canLogout {
@@ -69,17 +65,15 @@ contract EthCam {
       sendBalanceTo(msg.sender);
     }
 
-    function postPic(bytes32 hash, uint newNonce) public {
-      require(newNonce == nonce + 1, "New nonce should be 1 more than current nonce.");
-
-      // Do meta transaction stuff
-      // User pays for the camera's transaction somehow
-
+    function postPic(bytes32 hash) public onlyCamera {
       pics.push(hash);
-      nonce = newNonce;
     }
 
-    function getLength() public view returns (uint) {
-      return pics.length;
+    function sendBalanceTo(address user) internal {
+      user.transfer(address(this).balance);
+    }
+
+    function topUpCamera() public payable {
+      CAMERA.transfer(msg.value);
     }
 }
