@@ -17,7 +17,7 @@ pragma solidity ^0.5.11;
 
   4. If the user neglects to logout, after 43 blocks (~10 min) anyone
     else can log in. The neglected balance stays in the camera and
-    future users can take free pictures with it
+    future users can take free pictures with it or log out with it
  */
 
 contract EthCam {
@@ -30,27 +30,28 @@ contract EthCam {
     uint public lastActionBlock;
     bytes32[] public pics;
 
-    constructor(address payable camera) public {
+    constructor(address payable camera) public payable {
       CAMERA = camera;
     }
 
     modifier canLogin() {
-      // If no one is logged in, let them log in
-      if (loggedInUser == address(0)) {
-        _;
+      // If someone is logged in
+      if (loggedInUser != address(0)) {
+        // Check the user trying to log in isn't already logged in
+        require(
+          loggedInUser != address(msg.sender),
+          "You are already logged in."
+        );
+
+        // And only proceed if the previous user has timed out
+        require(
+          block.number > lastActionBlock + LOGIN_TIMEOUT_IN_BLOCKS,
+          "Someone else is currently logged in. Please wait until the previous timeout expires."
+        );
       }
 
-      // Otherwise check the user trying to log in isn't already logged in
-      require(
-        loggedInUser != address(msg.sender),
-        "You are already logged in."
-      );
-
-      // And only proceed if the previous user has timed out
-      require(
-        block.number > lastActionBlock + LOGIN_TIMEOUT_IN_BLOCKS,
-        "Someone else is currently logged in. Please wait until the previous timeout expires."
-      );
+      // Otherwise let them log in
+      _;
     }
 
     modifier canLogout() {
@@ -86,7 +87,8 @@ contract EthCam {
       lastActionBlock = uint(0);
 
       // Camera sends back its balance when it logs out the user
-      userBeingLoggedOut.transfer(msg.value);
+      // HOW TO SEND ENTIRE BALANCE MINUS GAS???
+      userBeingLoggedOut.transfer(CAMERA.balance);
     }
 
     function postPic(bytes32 hash) public onlyCamera {
