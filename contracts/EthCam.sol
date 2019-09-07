@@ -87,8 +87,7 @@ contract EthCam {
       lastActionBlock = uint(0);
 
       // Camera sends back its balance when it logs out the user
-      // HOW TO SEND ENTIRE BALANCE MINUS GAS???
-      userBeingLoggedOut.transfer(CAMERA.balance);
+      userBeingLoggedOut.transfer(msg.value);
     }
 
     function postPic(bytes32 hash) public onlyCamera {
@@ -100,7 +99,9 @@ contract EthCam {
       lastActionBlock = block.number;
     }
 
+    // Anyone can add money to the camera
     function topUpCamera() public payable {
+      require(msg.value > 0, "Must send some value when topping up camera");
       // Anyone can put money on the camera, allowing it to take pics
       CAMERA.transfer(msg.value);
     }
