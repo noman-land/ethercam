@@ -90,6 +90,9 @@ contract EthCam {
     }
 
     function sendBalanceTo(address payable user) internal {
+      // this is broken now that the camera receives the funds directly
+      // look into figuring out how to keep the balance inside the contract
+      // and not inside the camera, and let the contract pay its own gas
       user.transfer(address(this).balance);
     }
 
