@@ -22,7 +22,7 @@ pragma solidity ^0.5.11;
 
 contract EthCam {
     // 5 min timeout @ 14 sec per block
-    uint loginTimeoutInBlocks = 21;
+    uint LOGIN_TIMEOUT_IN_BLOCKS = 21;
 
     address public CAMERA;
 
@@ -40,10 +40,10 @@ contract EthCam {
         require(
           loggedInUser != address(msg.sender),
           "You are already logged in."
-        )
+        );
 
         require(
-          block.number > loggedInBlock + loginTimeoutInBlocks,
+          block.number > loggedInBlock + LOGIN_TIMEOUT_IN_BLOCKS,
           "Someone else is currently logged in. Please wait until the previous timeout expires."
         );
 
