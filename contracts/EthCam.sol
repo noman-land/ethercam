@@ -24,14 +24,14 @@ contract EthCam {
     // 5 min timeout @ 14 sec per block
     uint LOGIN_TIMEOUT_IN_BLOCKS = 21;
 
-    address public CAMERA;
+    address payable public CAMERA;
 
-    address public loggedInUser;
+    address payable public loggedInUser;
     uint public loggedInBlock;
     uint public nonce;
     bytes32[] public pics;
 
-    constructor(address camera) {
+    constructor(address payable camera) public {
       CAMERA = camera;
     }
 
@@ -89,7 +89,7 @@ contract EthCam {
       pics.push(hash);
     }
 
-    function sendBalanceTo(address user) internal {
+    function sendBalanceTo(address payable user) internal {
       user.transfer(address(this).balance);
     }
 
