@@ -1,5 +1,25 @@
 pragma solidity ^0.5.11;
 
+/**
+  User Flow:
+
+  1. User goes to the EthCam webdapp, which has a Login button
+    and shows the public timeline.
+
+  2. This generates a login() transaction on the EthCam contract
+    and adds ~$1 balance to the camera (which has its own address)
+    so it can post pictures.
+
+    The user is logging into the _camera_ not into the webdapp :).
+
+  3. When user is done taking pics, they log out and get returned
+    any balance they didn't use to pay for posting pics.
+
+  4. If the user neglects to logout, after 21 blocks (~5 min) anyone
+    else can log in. The neglected balance _gets returned to its
+    rightful owner_.
+ */
+
 contract EthCam {
     // 5 min timeout @ 14 sec per block
     uint loginTimeoutInBlocks = 21;
