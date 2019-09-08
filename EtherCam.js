@@ -12,8 +12,8 @@ const Modes = {
 };
 
 const greetings = {
-  [Modes.INTRO]: ['* * EtherCam! * *', ' Press for info'],
-  [Modes.CAMERA]: ['Take a picture', 'Hold for rooms'],
+  [Modes.INTRO]: ['* * EtherCam * *', ' Press for info'],
+  [Modes.CAMERA]: ['Take a picture', 'Hold for info.'],
 };
 
 module.exports = class EtherCam {
@@ -95,7 +95,7 @@ module.exports = class EtherCam {
       this.printLcd('Error taking photo', '');
     }
 
-    this.printLcd('Photo posted in', 'GrubSpot. Thanks');
+    this.printLcd('Photo posted. Thanks');
   };
 
   playIntro() {
@@ -188,7 +188,9 @@ module.exports = class EtherCam {
   toggleMode() {
     switch (this.mode) {
       case Modes.INTRO:
+        this.mode = Modes.CAMERA;
       case Modes.CAMERA:
+        this.mode = Modes.INTRO;
         break;
       default:
         return;
