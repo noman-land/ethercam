@@ -1,0 +1,3 @@
+#!/bin/sh
+GIT_WORK_TREE=/home/pi/projects/ethercam git checkout -f
+sudo systemctl restart nodeserver

@@ -1,0 +1,14 @@
+[Unit]
+Description=EtherCam
+Documentation=https://example.com
+After=network.target
+
+[Service]
+Environment=NODE_PORT=3001
+Type=simple
+User=root
+ExecStart=/home/pi/.nvm/versions/node/v10.12.0/bin/node /home/pi/projects/ethercam/index.js
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
