@@ -3,10 +3,10 @@ pragma solidity ^0.5.11;
 /**
   User Flow:
 
-  1. User goes to the EthCam webdapp, which has a Login button
+  1. User goes to the EtherCam webdapp, which has a Login button
     and shows the public timeline.
 
-  2. This generates a login() transaction on the EthCam contract
+  2. This generates a login() transaction on the EtherCam contract
     and adds ~$1 balance to the camera (which has its own address)
     so it can post pictures.
 
@@ -20,7 +20,9 @@ pragma solidity ^0.5.11;
     future users can take free pictures with it or log out with it
  */
 
-contract EthCam {
+contract EtherCam {
+    bytes32 public TEST_HASH = sha256("test");
+
     // 10 min timeout @ 14 sec per block
     uint LOGIN_TIMEOUT_IN_BLOCKS = 43;
 
