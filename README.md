@@ -1,5 +1,7 @@
 # Ethercam
 
+Hackathon project for EthBoston (2019): https://devpost.com/software/ethercam
+
 ## Development
 1. ssh into the Raspberry pi and install nvm and the latest nodejs. Make note of the node version.
 
